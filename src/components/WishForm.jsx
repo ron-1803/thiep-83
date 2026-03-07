@@ -16,18 +16,44 @@ export default function WishForm({ onComplete }) {
     const [dragOver, setDragOver] = useState(false)
     const fileInputRef = useRef(null)
 
-    const readFile = (file) => {
+    const [isUploading, setIsUploading] = useState(false)
+
+    const uploadImageToImgBB = async (file) => {
         if (!file || !file.type.startsWith('image/')) return
-        const reader = new FileReader()
-        reader.onload = (e) => setPhoto(e.target.result)
-        reader.readAsDataURL(file)
+
+        setIsUploading(true)
+        setErrors(p => ({ ...p, photo: undefined }))
+
+        const formData = new FormData()
+        formData.append('image', file)
+
+        try {
+            // Dùng ImgBB API key công cộng ẩn danh hoặc lấy từ env
+            const API_KEY = import.meta.env.VITE_IMGBB_API_KEY || '6440dbacb292cd4de8bd4b31da0e2e50'
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+                method: 'POST',
+                body: formData
+            })
+            const data = await res.json()
+
+            if (data.success) {
+                setPhoto(data.data.url)
+            } else {
+                setErrors(p => ({ ...p, photo: 'Không thể tải ảnh lên, thử định dạng khác!' }))
+            }
+        } catch (err) {
+            console.error('ImgBB Upload Error:', err)
+            setErrors(p => ({ ...p, photo: 'Lỗi mạng khi tải ảnh lên, vui lòng thử lại.' }))
+        } finally {
+            setIsUploading(false)
+        }
     }
 
-    const handleFileChange = (e) => readFile(e.target.files[0])
+    const handleFileChange = (e) => uploadImageToImgBB(e.target.files[0])
     const handleDrop = (e) => {
         e.preventDefault()
         setDragOver(false)
-        readFile(e.dataTransfer.files[0])
+        uploadImageToImgBB(e.dataTransfer.files[0])
     }
     const removePhoto = () => {
         setPhoto(null)
@@ -102,7 +128,12 @@ export default function WishForm({ onComplete }) {
                     <div className="form-group">
                         <label className="form-label">📷 Ảnh người nhận <span className="optional-tag">tuỳ chọn</span></label>
 
-                        {photo ? (
+                        {isUploading ? (
+                            <div className="photo-preview-wrap" style={{ background: 'rgba(255,255,255,0.6)', color: 'var(--primary)' }}>
+                                <span className="photo-drop-icon" style={{ animation: 'spin 2s linear infinite' }}>⏳</span>
+                                <span className="photo-preview-label">Đang tải ảnh lên Cloud...</span>
+                            </div>
+                        ) : photo ? (
                             <div className="photo-preview-wrap">
                                 <img src={photo} alt="preview" className="photo-preview-img" />
                                 <button type="button" className="photo-remove-btn" onClick={removePhoto} title="Xoá ảnh">✕</button>
@@ -110,7 +141,7 @@ export default function WishForm({ onComplete }) {
                             </div>
                         ) : (
                             <div
-                                className={`photo-drop-zone ${dragOver ? 'drag-over' : ''}`}
+                                className={`photo-drop-zone ${dragOver ? 'drag-over' : ''} ${errors.photo ? 'input-error' : ''}`}
                                 onClick={() => fileInputRef.current?.click()}
                                 onDragOver={e => { e.preventDefault(); setDragOver(true) }}
                                 onDragLeave={() => setDragOver(false)}
@@ -122,6 +153,7 @@ export default function WishForm({ onComplete }) {
                                 <span className="photo-drop-sub">JPG, PNG, WEBP — Tối đa 5 MB</span>
                             </div>
                         )}
+                        {errors.photo && <span className="error-text" style={{ display: 'block', marginTop: '4px' }}>{errors.photo}</span>}
 
                         <input
                             ref={fileInputRef}
@@ -169,8 +201,12 @@ export default function WishForm({ onComplete }) {
                         </div>
                     </div>
 
-                    <button type="submit" className="submit-btn" id="create-card-btn">
-                        🎨 Tạo thiệp ngay!
+                    <button
+                        type="submit"
+                        className="btn btn-primary form-submit-btn"
+                        disabled={isUploading}
+                    >
+                        {isUploading ? 'Đang chuẩn bị ảnh...' : '🎨 Tạo thiệp ngay!'}
                     </button>
                 </form>
 
