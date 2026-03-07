@@ -37,8 +37,7 @@ export default function App() {
     }
 
     const handleBack = () => {
-        // Remove share params from URL so the browser history is clean
-        window.history.replaceState({}, '', window.location.pathname)
+        // Just go back to tab 0
         setActiveTab(0)
     }
 
