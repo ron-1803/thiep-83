@@ -98,10 +98,36 @@ export default function WishForm({ onComplete }) {
         return Object.keys(e).length === 0
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         if (!validate()) return
-        onComplete({ sender: sender.trim(), recipient: recipient.trim(), message: message.trim(), photo })
+
+        setIsUploading(true)
+        try {
+            const res = await fetch('/api/cards', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sender: sender.trim(),
+                    recipient: recipient.trim(),
+                    message: message.trim(),
+                    photo: photo || null
+                })
+            })
+            const data = await res.json()
+
+            if (data.success) {
+                // Pass id to the parent App component
+                onComplete({ id: data.id, sender: sender.trim(), recipient: recipient.trim(), message: message.trim(), photo })
+            } else {
+                setErrors(p => ({ ...p, message: 'Lỗi lưu thiệp: ' + data.error }))
+            }
+        } catch (err) {
+            console.error('Save Card Error:', err)
+            setErrors(p => ({ ...p, message: 'Không thể lưu thiệp, vui lòng thử lại.' }))
+        } finally {
+            setIsUploading(false)
+        }
     }
 
     const usePreset = (text) => {

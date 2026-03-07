@@ -20,11 +20,28 @@ db.exec(`
     user_agent TEXT,
     created_at TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
   );
+
+  CREATE TABLE IF NOT EXISTS cards (
+    id         TEXT PRIMARY KEY,
+    sender     TEXT NOT NULL,
+    recipient  TEXT NOT NULL,
+    message    TEXT NOT NULL,
+    photo      TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+  );
 `)
 
 // Prepared statements
 export const insertEvent = db.prepare(
   `INSERT INTO events (type, ip, user_agent) VALUES (?, ?, ?)`
+)
+
+export const insertCard = db.prepare(
+  `INSERT INTO cards (id, sender, recipient, message, photo) VALUES (?, ?, ?, ?, ?)`
+)
+
+export const getCard = db.prepare(
+  `SELECT id, sender, recipient, message, photo, created_at FROM cards WHERE id = ?`
 )
 
 export const getStats = db.prepare(`

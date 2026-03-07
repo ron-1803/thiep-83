@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { insertEvent, getStats, getRecent } from './db.js'
+import { insertEvent, getStats, getRecent, insertCard, getCard } from './db.js'
 import dotenv from 'dotenv'
 
 // Cloudflare R2 Imports
@@ -90,6 +90,48 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     } catch (err) {
         console.error('[/api/upload error]:', err)
         res.status(500).json({ success: false, error: 'Failed to upload photo to R2 block storage' })
+    }
+})
+
+/**
+ * POST /api/cards
+ * Nhận dữ liệu thiệp và tạo mã ID
+ */
+app.post('/api/cards', (req, res) => {
+    try {
+        const { sender, recipient, message, photo } = req.body
+        if (!sender || !recipient || !message) {
+            return res.status(400).json({ success: false, error: 'Thiếu thông tin bắt buộc' })
+        }
+
+        let id = crypto.randomBytes(3).toString('hex') // mã ngắn 6 kí tự
+        // Đảm bảo ID không bị trùng lặp
+        while (getCard.get(id)) {
+            id = crypto.randomBytes(3).toString('hex')
+        }
+
+        insertCard.run(id, sender, recipient, message, photo || null)
+        res.json({ success: true, id })
+    } catch (err) {
+        console.error('[/api/cards]', err)
+        res.status(500).json({ success: false, error: err.message })
+    }
+})
+
+/**
+ * GET /api/cards/:id
+ * Truy xuất thông tin thiệp
+ */
+app.get('/api/cards/:id', (req, res) => {
+    try {
+        const card = getCard.get(req.params.id)
+        if (!card) {
+            return res.status(404).json({ success: false, error: 'Card not found' })
+        }
+        res.json({ success: true, data: card })
+    } catch (err) {
+        console.error('[/api/cards/:id]', err)
+        res.status(500).json({ success: false, error: err.message })
     }
 })
 

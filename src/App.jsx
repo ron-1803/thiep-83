@@ -5,29 +5,43 @@ import WishForm from './components/WishForm'
 import CardPreview from './components/CardPreview'
 import TabBar from './components/TabBar'
 
-// Read card data from URL query params (?r=recipient&s=sender&m=message&p=photo)
-function readParamsFromUrl() {
-    const p = new URLSearchParams(window.location.search)
-    const r = p.get('r')
-    const s = p.get('s')
-    const m = p.get('m')
-    const photo = p.get('p')
-    if (r && s && m) return { recipient: r, sender: s, message: m, photo: photo || null }
-    return null
-}
-
 export default function App() {
     const [activeTab, setActiveTab] = useState(0)
     const [cardData, setCardData] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
 
     // On mount: track view + auto-load card if URL has share params
     useEffect(() => {
         fetch('/api/view', { method: 'POST' }).catch(() => { })
 
-        const fromUrl = readParamsFromUrl()
-        if (fromUrl) {
-            setCardData(fromUrl)
-            setActiveTab(1)
+        const p = new URLSearchParams(window.location.search)
+        const id = p.get('id')
+
+        if (id) {
+            setIsLoading(true)
+            fetch(`/api/cards/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        setCardData(data.data) // data.data contains id, sender, recipient, message, photo
+                        setActiveTab(1)
+                    } else {
+                        console.error('Card not found:', data.error)
+                        // Giữ nguyên tab 0 
+                    }
+                })
+                .catch(err => console.error('Lỗi tải thiệp:', err))
+                .finally(() => setIsLoading(false))
+        } else {
+            // Fallback link cũ
+            const r = p.get('r')
+            const s = p.get('s')
+            const m = p.get('m')
+            const photo = p.get('p')
+            if (r && s && m) {
+                setCardData({ recipient: r, sender: s, message: m, photo: photo || null })
+                setActiveTab(1)
+            }
         }
     }, [])
 

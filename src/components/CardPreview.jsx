@@ -10,6 +10,10 @@ export default function CardPreview({ data, onBack }) {
 
     const buildShareUrl = () => {
         const base = `${window.location.origin}${window.location.pathname}`
+        if (data.id) {
+            return `${base}?id=${data.id}`
+        }
+        // Giữ lại dự phòng (Fallback) cho link cũ đã từng tạo
         const params = new URLSearchParams({ r: recipient, s: sender, m: message })
         if (photo) params.append('p', photo)
         return `${base}?${params.toString()}`
