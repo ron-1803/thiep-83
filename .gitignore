@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output (Render sẽ tự build)
+dist/
+
+# Database (Render dùng persistent disk riêng)
+data.db
+data.db-shm
+data.db-wal
+
+# Local env
+.env
+.env.local
+
+# Windows scripts (không cần trên server)
+start-ngrok.ps1
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

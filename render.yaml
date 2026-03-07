@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: thiep-83
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1
