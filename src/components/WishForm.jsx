@@ -16,44 +16,36 @@ export default function WishForm({ onComplete }) {
     const [dragOver, setDragOver] = useState(false)
     const fileInputRef = useRef(null)
 
-    const [isUploading, setIsUploading] = useState(false)
-
-    const uploadImageToImgBB = async (file) => {
+    const readFile = (file) => {
         if (!file || !file.type.startsWith('image/')) return
-
-        setIsUploading(true)
-        setErrors(p => ({ ...p, photo: undefined }))
-
-        const formData = new FormData()
-        formData.append('image', file)
-
-        try {
-            // Dùng ImgBB API key công cộng ẩn danh hoặc lấy từ env
-            const API_KEY = import.meta.env.VITE_IMGBB_API_KEY || '6440dbacb292cd4de8bd4b31da0e2e50'
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
-                method: 'POST',
-                body: formData
-            })
-            const data = await res.json()
-
-            if (data.success) {
-                setPhoto(data.data.url)
-            } else {
-                setErrors(p => ({ ...p, photo: 'Không thể tải ảnh lên, thử định dạng khác!' }))
+        const MAX = 2 * 1024 * 1024
+        if (file.size > MAX) {
+            const img = new Image()
+            const url = URL.createObjectURL(file)
+            img.onload = () => {
+                URL.revokeObjectURL(url)
+                const canvas = document.createElement('canvas')
+                const maxDim = 800
+                let w = img.width, h = img.height
+                if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim }
+                else if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim }
+                canvas.width = w; canvas.height = h
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+                setPhoto(canvas.toDataURL('image/jpeg', 0.78))
             }
-        } catch (err) {
-            console.error('ImgBB Upload Error:', err)
-            setErrors(p => ({ ...p, photo: 'Lỗi mạng khi tải ảnh lên, vui lòng thử lại.' }))
-        } finally {
-            setIsUploading(false)
+            img.src = url
+        } else {
+            const reader = new FileReader()
+            reader.onload = (e) => setPhoto(e.target.result)
+            reader.readAsDataURL(file)
         }
     }
 
-    const handleFileChange = (e) => uploadImageToImgBB(e.target.files[0])
+    const handleFileChange = (e) => readFile(e.target.files[0])
     const handleDrop = (e) => {
         e.preventDefault()
         setDragOver(false)
-        uploadImageToImgBB(e.dataTransfer.files[0])
+        readFile(e.dataTransfer.files[0])
     }
     const removePhoto = () => {
         setPhoto(null)
@@ -128,12 +120,7 @@ export default function WishForm({ onComplete }) {
                     <div className="form-group">
                         <label className="form-label">📷 Ảnh người nhận <span className="optional-tag">tuỳ chọn</span></label>
 
-                        {isUploading ? (
-                            <div className="photo-preview-wrap" style={{ background: 'rgba(255,255,255,0.6)', color: 'var(--primary)' }}>
-                                <span className="photo-drop-icon" style={{ animation: 'spin 2s linear infinite' }}>⏳</span>
-                                <span className="photo-preview-label">Đang tải ảnh lên Cloud...</span>
-                            </div>
-                        ) : photo ? (
+                        {photo ? (
                             <div className="photo-preview-wrap">
                                 <img src={photo} alt="preview" className="photo-preview-img" />
                                 <button type="button" className="photo-remove-btn" onClick={removePhoto} title="Xoá ảnh">✕</button>
