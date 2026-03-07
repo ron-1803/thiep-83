@@ -23,35 +23,43 @@ export default function WishForm({ onComplete }) {
         setIsUploading(true)
         setErrors(p => ({ ...p, photo: undefined }))
 
-        const uploadBase64 = async (base64DataUrl) => {
-            try {
-                // Tách bỏ phần "data:image/jpeg;base64,"
-                const base64String = base64DataUrl.split(',')[1]
-                const formData = new FormData()
-                formData.append('image', base64String)
+        const uploadBlob = async (blobData) => {
+            const formData = new FormData()
+            formData.append('image', blobData, 'photo.jpg')
 
-                const API_KEY = import.meta.env.VITE_IMGBB_API_KEY || '6440dbacb292cd4de8bd4b31da0e2e50'
-                const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
-                    method: 'POST',
-                    body: formData
-                })
-                const data = await res.json()
-                if (data.success) {
-                    setPhoto(data.data.url)
-                } else {
-                    setErrors(p => ({ ...p, photo: 'Không thể tải ảnh lên ImgBB, thử file khác!' }))
+            // API keys dự phòng
+            const keys = [
+                import.meta.env.VITE_IMGBB_API_KEY || '6440dbacb292cd4de8bd4b31da0e2e50',
+                'c387cf3cff7ce3e6df41cceab8b975d2', // Fallback 1
+                'ced2b3b7548bce2a407db3be6ab30a51'  // Fallback 2
+            ]
+
+            let success = false
+            for (const key of keys) {
+                if (success) break
+                try {
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${key}`, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    const data = await res.json()
+                    if (data.success) {
+                        setPhoto(data.data.url)
+                        success = true
+                    }
+                } catch (err) {
+                    console.warn('ImgBB Upload Error with key', key, err)
                 }
-            } catch (err) {
-                console.error('ImgBB Upload Error:', err)
-                setErrors(p => ({ ...p, photo: 'Lỗi mạng khi tải ảnh lên, vui lòng thử lại.' }))
-            } finally {
-                setIsUploading(false)
             }
+
+            if (!success) {
+                setErrors(p => ({ ...p, photo: 'Không thể kết nối đến máy chủ ảnh, vui lòng thử lại sau!' }))
+            }
+            setIsUploading(false)
         }
 
         const MAX = 1.5 * 1024 * 1024 // 1.5MB
         if (file.size > MAX || file.type !== 'image/jpeg') {
-            // Resize / Convert to standard JPEG via Canvas
             const img = new Image()
             const url = URL.createObjectURL(file)
             img.onload = () => {
@@ -63,7 +71,11 @@ export default function WishForm({ onComplete }) {
                 else if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim }
                 canvas.width = w; canvas.height = h
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h)
-                uploadBase64(canvas.toDataURL('image/jpeg', 0.8))
+
+                // Nén thành Blob (File object thực thụ)
+                canvas.toBlob((blob) => {
+                    uploadBlob(blob)
+                }, 'image/jpeg', 0.8)
             }
             img.onerror = () => {
                 setIsUploading(false)
@@ -71,10 +83,7 @@ export default function WishForm({ onComplete }) {
             }
             img.src = url
         } else {
-            // Nhỏ gọn rồi, chỉ việc convert to base64
-            const reader = new FileReader()
-            reader.onload = (e) => uploadBase64(e.target.result)
-            reader.readAsDataURL(file)
+            uploadBlob(file)
         }
     }
 
