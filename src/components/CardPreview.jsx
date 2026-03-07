@@ -2,23 +2,10 @@ import { useState } from 'react'
 import GiftGame from './GiftGame'
 
 export default function CardPreview({ data, onBack }) {
-    const { sender, recipient, message, photo } = data
-
+    const { sender, recipient, message, photo, id } = data
     const [shareState, setShareState] = useState('idle')
+    const [savedId, setSavedId] = useState(id || null)
     const [toast, setToast] = useState({ show: false, message: '', type: '' })
-
-    const buildShareUrl = () => {
-        const base = `${window.location.origin}${window.location.pathname}`
-        const params = new URLSearchParams({ r: recipient, s: sender, m: message })
-        return `${base}?${params.toString()}`
-    }
-
-    const shareUrl = buildShareUrl()
-    const shareData = {
-        title: `🌸 Thiệp Chúc Mừng Ngày 8/3 từ ${sender}`,
-        text: `💐 Gửi đến ${recipient}: ${message} 🌷`,
-        url: shareUrl,
-    }
 
     const showToast = (msg, type = 'success') => {
         setToast({ show: true, message: msg, type })
@@ -27,6 +14,37 @@ export default function CardPreview({ data, onBack }) {
 
     const handleShare = async () => {
         setShareState('sharing')
+
+        let finalUrl = ''
+        if (savedId) {
+            finalUrl = `${window.location.origin}${window.location.pathname}?id=${savedId}`
+        } else {
+            try {
+                const res = await fetch('/api/cards', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sender, recipient, message, photo })
+                })
+                const result = await res.json()
+                if (result.ok && result.id) {
+                    setSavedId(result.id)
+                    finalUrl = `${window.location.origin}${window.location.pathname}?id=${result.id}`
+                } else {
+                    throw new Error('Lỗi server')
+                }
+            } catch (err) {
+                setShareState('error')
+                showToast('😢 Không thể tạo link chia sẻ, thử lại nhé!', 'error')
+                setTimeout(() => setShareState('idle'), 3500)
+                return
+            }
+        }
+
+        const shareData = {
+            title: `🌸 Thiệp Chúc Mừng Ngày 8/3 từ ${sender}`,
+            text: `💐 Gửi đến ${recipient}: ${message} 🌷`,
+            url: finalUrl,
+        }
 
         if (navigator.share) {
             try {
@@ -48,7 +66,7 @@ export default function CardPreview({ data, onBack }) {
         }
 
         try {
-            const clipText = `${shareData.title}\n${shareData.text}\n🔗 ${shareUrl}`
+            const clipText = `${shareData.title}\n${shareData.text}\n🔗 ${finalUrl}`
             await navigator.clipboard.writeText(clipText)
             setShareState('copied')
             showToast('📋 Đã sao chép link thiệp! Dán vào tin nhắn để chia sẻ nhé 💕', 'copy')

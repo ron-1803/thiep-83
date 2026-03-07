@@ -2,7 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { insertEvent, getStats, getRecent } from './db.js'
+import crypto from 'crypto'
+import { insertEvent, getStats, getRecent, insertCard, getCard } from './db.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -10,7 +11,7 @@ const PORT = process.env.PORT || 3001
 
 // ── Middleware ──────────────────────────────────────────────
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: '10mb' }))
 
 // Skip ngrok's browser warning interstitial (allows phones to open directly)
 app.use((_req, res, next) => {
@@ -74,6 +75,52 @@ app.get('/api/stats', (req, res) => {
     } catch (err) {
         console.error('[/api/stats]', err)
         res.status(500).json({ ok: false, error: err.message })
+    }
+})
+
+/**
+ * POST /api/cards
+ * Save card data and return a short ID
+ */
+app.post('/api/cards', (req, res) => {
+    try {
+        const { sender, recipient, message, photo } = req.body
+        if (!sender || !recipient || !message) {
+            return res.status(400).json({ ok: false, error: 'Thiếu thông tin bắt buộc' })
+        }
+
+        // Generate a 6-character hex short ID
+        const id = crypto.randomBytes(3).toString('hex')
+        insertCard.run(id, sender, recipient, message, photo || null)
+
+        res.json({ ok: true, id })
+    } catch (err) {
+        console.error('[/api/cards POST]', err)
+        res.status(500).json({ ok: false, error: 'Lỗi server khi lưu thiệp' })
+    }
+})
+
+/**
+ * GET /api/cards/:id
+ * Retrieve card data by short ID
+ */
+app.get('/api/cards/:id', (req, res) => {
+    try {
+        const card = getCard.get(req.params.id)
+        if (!card) return res.status(404).json({ ok: false, error: 'Không tìm thấy thiệp' })
+
+        res.json({
+            ok: true,
+            data: {
+                sender: card.sender,
+                recipient: card.recipient,
+                message: card.message,
+                photo: card.photo,
+            }
+        })
+    } catch (err) {
+        console.error('[/api/cards GET]', err)
+        res.status(500).json({ ok: false, error: 'Lỗi server khi xem thiệp' })
     }
 })
 
