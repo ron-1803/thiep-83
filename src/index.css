@@ -1120,6 +1120,62 @@ body {
   margin: 10px auto 26px;
 }
 
+.photo-wrapper-with-stickers {
+  position: relative;
+  display: inline-block;
+}
+
+.photo-sticker {
+  position: absolute;
+  z-index: 5;
+  filter: drop-shadow(0 2px 5px rgba(255, 77, 125, 0.4));
+  animation: floatSticker 3s ease-in-out infinite alternate var(--delay, 0s);
+  user-select: none;
+  pointer-events: none;
+}
+
+@keyframes floatSticker {
+  0% {
+    transform: translateY(0) rotate(var(--rot, 0deg)) scale(1);
+  }
+
+  100% {
+    transform: translateY(-8px) rotate(calc(var(--rot, 0deg) + 12deg)) scale(1.15);
+  }
+}
+
+.sticker-1 {
+  top: -5px;
+  left: -8px;
+  font-size: 1.8rem;
+  --rot: -15deg;
+  --delay: 0s;
+}
+
+.sticker-2 {
+  top: 0px;
+  right: -15px;
+  font-size: 1.6rem;
+  --rot: 15deg;
+  --delay: 0.8s;
+}
+
+.sticker-3 {
+  bottom: 15px;
+  left: -18px;
+  font-size: 1.5rem;
+  --rot: -25deg;
+  --delay: 0.3s;
+}
+
+.sticker-4 {
+  bottom: 5px;
+  right: -10px;
+  font-size: 1.9rem;
+  --rot: 20deg;
+  --delay: 1.2s;
+}
+
 .recipient-photo-img {
   width: 140px;
   height: 140px;

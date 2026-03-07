@@ -93,19 +93,23 @@ export default function CardPreview({ data, onBack }) {
                     <p className="card-subtitle">International Women's Day 🌍</p>
 
                     {/* ── Recipient Photo (Main Focus) ── */}
-                    {photo ? (
-                        <div className="recipient-photo-frame">
-                            <img src={photo} alt={recipient} className="recipient-photo-img" />
-                            <div className="recipient-photo-badge">Gửi đến {recipient}</div>
+                    <div className="recipient-photo-frame">
+                        <div className="photo-wrapper-with-stickers">
+                            {photo ? (
+                                <img src={photo} alt={recipient} className="recipient-photo-img" />
+                            ) : (
+                                <div className="recipient-photo-placeholder">
+                                    <span>💐</span>
+                                </div>
+                            )}
+                            {/* Cute Stickers */}
+                            <span className="photo-sticker sticker-1">✨</span>
+                            <span className="photo-sticker sticker-2">🎀</span>
+                            <span className="photo-sticker sticker-3">🌸</span>
+                            <span className="photo-sticker sticker-4">💖</span>
                         </div>
-                    ) : (
-                        <div className="recipient-photo-frame">
-                            <div className="recipient-photo-placeholder">
-                                <span>💐</span>
-                            </div>
-                            <div className="recipient-photo-badge">Gửi đến {recipient}</div>
-                        </div>
-                    )}
+                        <div className="recipient-photo-badge">Gửi đến {recipient}</div>
+                    </div>
 
                     {/* Hearts */}
                     <div className="hearts-row" style={{ marginTop: '16px' }}>
