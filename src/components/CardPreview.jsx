@@ -2,13 +2,11 @@ import { useState } from 'react'
 import GiftGame from './GiftGame'
 
 export default function CardPreview({ data, onBack }) {
-    const { sender, recipient, message } = data
+    const { sender, recipient, message, photo } = data
 
     const [shareState, setShareState] = useState('idle')
     const [toast, setToast] = useState({ show: false, message: '', type: '' })
 
-    // Build a dedicated shareable URL encoding card data as query params.
-    // When someone opens this link they land directly on the personalized card.
     const buildShareUrl = () => {
         const base = `${window.location.origin}${window.location.pathname}`
         const params = new URLSearchParams({ r: recipient, s: sender, m: message })
@@ -30,7 +28,6 @@ export default function CardPreview({ data, onBack }) {
     const handleShare = async () => {
         setShareState('sharing')
 
-        // ── Web Share API (native share sheet on mobile / supported browsers) ──
         if (navigator.share) {
             try {
                 await navigator.share(shareData)
@@ -50,7 +47,6 @@ export default function CardPreview({ data, onBack }) {
             return
         }
 
-        // ── Fallback: copy the smart share link to clipboard ──
         try {
             const clipText = `${shareData.title}\n${shareData.text}\n🔗 ${shareUrl}`
             await navigator.clipboard.writeText(clipText)
@@ -77,8 +73,16 @@ export default function CardPreview({ data, onBack }) {
     return (
         <>
             <div className="preview-wrapper">
+
+                {/* ── Top decorative banner ── */}
+                <div className="preview-banner">
+                    <span className="preview-banner-text">🌸 Ngày Quốc Tế Phụ Nữ 8/3 🌸</span>
+                </div>
+
+                {/* ── Main card body ── */}
                 <div className="preview-card">
 
+                    {/* Header flowers */}
                     <span className="flowers-header">🌸💐🌷</span>
 
                     <div>
@@ -88,14 +92,37 @@ export default function CardPreview({ data, onBack }) {
                     <h1 className="card-title">Chúc Mừng Ngày<br />Quốc Tế Phụ Nữ</h1>
                     <p className="card-subtitle">International Women's Day 🌍</p>
 
-                    {/* Recipient name */}
-                    <div className="to-from-box">
-                        <span className="to-label">Gửi đến:</span>
-                        <span className="to-name">{recipient} 💐</span>
+                    {/* ── Photo + Recipient layout ── */}
+                    <div className="card-identity-row">
+
+                        {/* Sender photo / avatar */}
+                        <div className="sender-photo-frame">
+                            {photo ? (
+                                <img src={photo} alt={sender} className="sender-photo-img" />
+                            ) : (
+                                <div className="sender-photo-placeholder">
+                                    <span>💖</span>
+                                </div>
+                            )}
+                            <div className="sender-photo-badge">{sender}</div>
+                        </div>
+
+                        {/* Arrow + recipient */}
+                        <div className="card-arrow-recipient">
+                            <div className="card-arrow">
+                                <span className="arrow-line" />
+                                <span className="arrow-label">gửi đến</span>
+                                <span className="arrow-line" />
+                            </div>
+                            <div className="to-from-box">
+                                <span className="to-name">{recipient} 💐</span>
+                            </div>
+                        </div>
+
                     </div>
 
                     {/* Bouquet */}
-                    <div className="bouquet-section" style={{ margin: '0 auto 22px' }}>
+                    <div className="bouquet-section" style={{ margin: '0 auto 18px' }}>
                         <div className="bouquet-circle">💐</div>
                         <span className="sparkle sparkle-1">✨</span>
                         <span className="sparkle sparkle-2">⭐</span>
@@ -109,12 +136,12 @@ export default function CardPreview({ data, onBack }) {
                         ))}
                     </div>
 
-                    {/* Custom message */}
+                    {/* Message */}
                     <div className="message-box">
                         <p className="message-text">{message}</p>
                     </div>
 
-                    {/* Sender signature */}
+                    {/* Ribbon */}
                     <div className="ribbon">
                         <div className="ribbon-line" />
                         <span className="ribbon-text">💌 Từ {sender} với tất cả tình yêu 💌</span>
@@ -150,6 +177,7 @@ export default function CardPreview({ data, onBack }) {
                 </div>
             </div>
 
+            {/* ── Minigame ── */}
             <GiftGame />
 
             <div className={toastClass}>{toast.message}</div>

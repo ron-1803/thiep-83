@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 const PRESET_MESSAGES = [
     'Chúc bạn luôn xinh đẹp, tràn đầy sức sống và hạnh phúc mỗi ngày! 🌸',
@@ -11,7 +11,28 @@ export default function WishForm({ onComplete }) {
     const [sender, setSender] = useState('')
     const [recipient, setRecipient] = useState('')
     const [message, setMessage] = useState('')
+    const [photo, setPhoto] = useState(null)   // base64 data URL
     const [errors, setErrors] = useState({})
+    const [dragOver, setDragOver] = useState(false)
+    const fileInputRef = useRef(null)
+
+    const readFile = (file) => {
+        if (!file || !file.type.startsWith('image/')) return
+        const reader = new FileReader()
+        reader.onload = (e) => setPhoto(e.target.result)
+        reader.readAsDataURL(file)
+    }
+
+    const handleFileChange = (e) => readFile(e.target.files[0])
+    const handleDrop = (e) => {
+        e.preventDefault()
+        setDragOver(false)
+        readFile(e.dataTransfer.files[0])
+    }
+    const removePhoto = () => {
+        setPhoto(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+    }
 
     const validate = () => {
         const e = {}
@@ -25,7 +46,7 @@ export default function WishForm({ onComplete }) {
     const handleSubmit = (e) => {
         e.preventDefault()
         if (!validate()) return
-        onComplete({ sender: sender.trim(), recipient: recipient.trim(), message: message.trim() })
+        onComplete({ sender: sender.trim(), recipient: recipient.trim(), message: message.trim(), photo })
     }
 
     const usePreset = (text) => {
@@ -75,6 +96,41 @@ export default function WishForm({ onComplete }) {
                             maxLength={40}
                         />
                         {errors.sender && <span className="error-text">{errors.sender}</span>}
+                    </div>
+
+                    {/* Photo upload */}
+                    <div className="form-group">
+                        <label className="form-label">📷 Ảnh của bạn <span className="optional-tag">tuỳ chọn</span></label>
+
+                        {photo ? (
+                            <div className="photo-preview-wrap">
+                                <img src={photo} alt="preview" className="photo-preview-img" />
+                                <button type="button" className="photo-remove-btn" onClick={removePhoto} title="Xoá ảnh">✕</button>
+                                <span className="photo-preview-label">✅ Ảnh đã chọn</span>
+                            </div>
+                        ) : (
+                            <div
+                                className={`photo-drop-zone ${dragOver ? 'drag-over' : ''}`}
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                                onDragLeave={() => setDragOver(false)}
+                                onDrop={handleDrop}
+                                id="photo-drop-zone"
+                            >
+                                <span className="photo-drop-icon">🌸</span>
+                                <span className="photo-drop-text">Nhấn hoặc kéo ảnh vào đây</span>
+                                <span className="photo-drop-sub">JPG, PNG, WEBP — Tối đa 5 MB</span>
+                            </div>
+                        )}
+
+                        <input
+                            ref={fileInputRef}
+                            id="photo-input"
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={handleFileChange}
+                        />
                     </div>
 
                     {/* Message */}
