@@ -92,45 +92,23 @@ export default function CardPreview({ data, onBack }) {
                     <h1 className="card-title">Chúc Mừng Ngày<br />Quốc Tế Phụ Nữ</h1>
                     <p className="card-subtitle">International Women's Day 🌍</p>
 
-                    {/* ── Photo + Recipient layout ── */}
-                    <div className="card-identity-row">
-
-                        {/* Sender photo / avatar */}
-                        <div className="sender-photo-frame">
-                            {photo ? (
-                                <img src={photo} alt={sender} className="sender-photo-img" />
-                            ) : (
-                                <div className="sender-photo-placeholder">
-                                    <span>💖</span>
-                                </div>
-                            )}
-                            <div className="sender-photo-badge">{sender}</div>
+                    {/* ── Recipient Photo (Main Focus) ── */}
+                    {photo ? (
+                        <div className="recipient-photo-frame">
+                            <img src={photo} alt={recipient} className="recipient-photo-img" />
+                            <div className="recipient-photo-badge">Gửi đến {recipient}</div>
                         </div>
-
-                        {/* Arrow + recipient */}
-                        <div className="card-arrow-recipient">
-                            <div className="card-arrow">
-                                <span className="arrow-line" />
-                                <span className="arrow-label">gửi đến</span>
-                                <span className="arrow-line" />
+                    ) : (
+                        <div className="recipient-photo-frame">
+                            <div className="recipient-photo-placeholder">
+                                <span>💐</span>
                             </div>
-                            <div className="to-from-box">
-                                <span className="to-name">{recipient} 💐</span>
-                            </div>
+                            <div className="recipient-photo-badge">Gửi đến {recipient}</div>
                         </div>
-
-                    </div>
-
-                    {/* Bouquet */}
-                    <div className="bouquet-section" style={{ margin: '0 auto 18px' }}>
-                        <div className="bouquet-circle">💐</div>
-                        <span className="sparkle sparkle-1">✨</span>
-                        <span className="sparkle sparkle-2">⭐</span>
-                        <span className="sparkle sparkle-3">💫</span>
-                    </div>
+                    )}
 
                     {/* Hearts */}
-                    <div className="hearts-row">
+                    <div className="hearts-row" style={{ marginTop: '16px' }}>
                         {['💖', '💝', '🩷', '💗', '❤️'].map((h, i) => (
                             <span key={i} className="heart">{h}</span>
                         ))}
@@ -142,7 +120,7 @@ export default function CardPreview({ data, onBack }) {
                     </div>
 
                     {/* Ribbon */}
-                    <div className="ribbon">
+                    <div className="ribbon" style={{ marginTop: '22px' }}>
                         <div className="ribbon-line" />
                         <span className="ribbon-text">💌 Từ {sender} với tất cả tình yêu 💌</span>
                         <div className="ribbon-line" />

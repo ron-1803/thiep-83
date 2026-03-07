@@ -100,7 +100,7 @@ export default function WishForm({ onComplete }) {
 
                     {/* Photo upload */}
                     <div className="form-group">
-                        <label className="form-label">📷 Ảnh của bạn <span className="optional-tag">tuỳ chọn</span></label>
+                        <label className="form-label">📷 Ảnh người nhận <span className="optional-tag">tuỳ chọn</span></label>
 
                         {photo ? (
                             <div className="photo-preview-wrap">

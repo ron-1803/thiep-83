@@ -1111,136 +1111,62 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Identity row: sender photo + arrow + recipient */
-.card-identity-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-}
-
-/* ── Sender photo frame (polaroid style) ── */
-.sender-photo-frame {
+/* Main Recipient Photo layout */
+.recipient-photo-frame {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  gap: 12px;
+  margin: 10px auto 26px;
 }
 
-.sender-photo-img {
-  width: 88px;
-  height: 88px;
+.recipient-photo-img {
+  width: 140px;
+  height: 140px;
   object-fit: cover;
   border-radius: 50%;
   border: 4px solid white;
   box-shadow:
-    0 6px 20px rgba(255, 77, 125, 0.35),
-    0 0 0 3px var(--pink);
+    0 8px 25px rgba(255, 77, 125, 0.4),
+    0 0 0 4px var(--pink);
   animation: floatBouquet 3.5s ease-in-out infinite;
 }
 
-.sender-photo-placeholder {
-  width: 88px;
-  height: 88px;
+.recipient-photo-placeholder {
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   background: linear-gradient(135deg, #FFD6E7, #EDE7F6);
   border: 4px solid white;
-  box-shadow: 0 6px 20px rgba(255, 77, 125, 0.25), 0 0 0 3px var(--pink-light);
+  box-shadow:
+    0 8px 25px rgba(255, 77, 125, 0.3),
+    0 0 0 4px var(--pink-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.4rem;
+  font-size: 3.5rem;
   animation: floatBouquet 3.5s ease-in-out infinite;
 }
 
-.sender-photo-badge {
+.recipient-photo-badge {
   font-family: 'Dancing Script', cursive;
-  font-size: 1.05rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: var(--rose);
-  background: rgba(255, 255, 255, 0.9);
-  border: 1.5px solid rgba(255, 143, 171, 0.4);
-  border-radius: 50px;
-  padding: 2px 12px;
-  box-shadow: 0 2px 8px rgba(255, 77, 125, 0.15);
-  white-space: nowrap;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ── Arrow in the middle ── */
-.card-arrow-recipient {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 100px;
-}
-
-.card-arrow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  justify-content: center;
-}
-
-.arrow-line {
-  flex: 1;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(255, 143, 171, 0.2), rgba(255, 77, 125, 0.6), rgba(255, 143, 171, 0.2));
-  border-radius: 4px;
-  max-width: 40px;
-}
-
-.arrow-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-mid);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  white-space: nowrap;
-}
-
-.to-from-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 0;
-  gap: 2px;
-}
-
-.to-name {
-  font-family: 'Dancing Script', cursive;
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: var(--rose);
-  line-height: 1.2;
   text-align: center;
+  line-height: 1.2;
 }
 
 @media (max-width: 400px) {
-  .card-identity-row {
-    gap: 10px;
+
+  .recipient-photo-img,
+  .recipient-photo-placeholder {
+    width: 110px;
+    height: 110px;
   }
 
-  .sender-photo-img,
-  .sender-photo-placeholder {
-    width: 72px;
-    height: 72px;
-  }
-
-  .to-name {
-    font-size: 1.4rem;
-  }
-
-  .sender-photo-badge {
-    font-size: 0.9rem;
+  .recipient-photo-badge {
+    font-size: 1.5rem;
   }
 }
 
