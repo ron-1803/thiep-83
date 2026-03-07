@@ -1611,3 +1611,213 @@ body {
     bottom: -52px;
   }
 }
+
+/* ============================================================
+   ENVELOPE COVER
+   ============================================================ */
+
+/* Wrapper phủ toàn bộ preview-wrapper */
+.envelope-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #ffe4f0 0%, #ffd6e7 50%, #f5c2d8 100%);
+  border-radius: 24px;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.envelope-wrapper.envelope-fade-out {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95) translateY(20px);
+}
+
+/* Container trung tâm  — perspective để 3D hoạt động */
+.envelope-container {
+  position: relative;
+  width: 300px;
+  height: 210px;
+  cursor: pointer;
+  perspective: 800px;
+  filter: drop-shadow(0 16px 40px rgba(255, 77, 125, 0.3));
+  transition: transform 0.2s ease;
+}
+
+.envelope-container:hover {
+  transform: scale(1.03);
+}
+
+.envelope-container:active {
+  transform: scale(0.98);
+}
+
+/* ─── Nắp trên (flap) lật lên khi open ─────────────────── */
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(160deg, #FF8FAB, #FF4D7D);
+  clip-path: polygon(0 0, 50% 75%, 100% 0);
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  transition: transform 0.75s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 3;
+  border-radius: 12px 12px 0 0;
+}
+
+.envelope-container.is-open .envelope-flap {
+  transform: rotateX(-180deg);
+}
+
+/* ─── Thân phong bì ─────────────────────────────────────── */
+.envelope-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #FFB3CC 0%, #FF8FAB 100%);
+  border-radius: 14px;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Đường gấp chéo bên trong phong bì */
+.envelope-bottom::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    linear-gradient(225deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+}
+
+/* ─── Phần thiệp thò ra khi open ────────────────────────── */
+.envelope-card-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  width: 80%;
+  height: 60%;
+  background: linear-gradient(160deg, #fff8fc, #fff0f5);
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 143, 171, 0.3);
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12px;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s;
+  box-shadow: 0 4px 12px rgba(255, 77, 125, 0.1);
+}
+
+.envelope-container.is-open .envelope-card-hint {
+  transform: translateX(-50%) translateY(-30px);
+}
+
+.card-hint-header {
+  font-size: 1.3rem;
+  letter-spacing: 4px;
+  opacity: 0.7;
+}
+
+/* ─── Seal / Con dấu trái tim ───────────────────────────── */
+.envelope-seal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.seal-heart {
+  font-size: 2.2rem;
+  animation: sealPulse 1.6s ease-in-out infinite;
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(255, 0, 110, 0.4));
+}
+
+.seal-text {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--rose);
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.8);
+}
+
+.seal-tap {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-mid);
+  opacity: 0.75;
+  letter-spacing: 0.03em;
+  margin-top: 2px;
+  animation: tapBounce 1.2s ease-in-out infinite;
+}
+
+/* Nhãn phía trên phong bì */
+.envelope-label {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.envelope-label h3 {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.5rem;
+  color: var(--rose);
+  text-shadow: 0 2px 8px rgba(255, 0, 110, 0.2);
+}
+
+.envelope-label p {
+  font-size: 0.8rem;
+  color: var(--text-mid);
+  margin-top: 6px;
+}
+
+/* ─── Keyframes ─────────────────────────────────────────── */
+@keyframes sealPulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes tapBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.75;
+  }
+
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+/* ─── Wrapper cha cần position: relative ────────────────── */
+.preview-wrapper {
+  position: relative;
+}

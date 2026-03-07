@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import GiftGame from './GiftGame'
+import EnvelopeCover from './EnvelopeCover'
 
 export default function CardPreview({ data, onBack }) {
     const { sender, recipient, message, photo } = data
     const [shareState, setShareState] = useState('idle')
     const [toast, setToast] = useState({ show: false, message: '', type: '' })
+    const [isCardRevealed, setIsCardRevealed] = useState(false)
 
     const buildShareUrl = () => {
         const base = `${window.location.origin}${window.location.pathname}`
@@ -73,6 +75,14 @@ export default function CardPreview({ data, onBack }) {
     return (
         <>
             <div className="preview-wrapper">
+
+                {/* ── Phong bì che thiệp — sẽ ẩn đi sau khi mở ── */}
+                {!isCardRevealed && (
+                    <EnvelopeCover
+                        recipient={recipient}
+                        onOpen={() => setIsCardRevealed(true)}
+                    />
+                )}
 
                 {/* ── Top decorative banner ── */}
                 <div className="preview-banner">
