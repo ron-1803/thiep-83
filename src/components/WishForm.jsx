@@ -232,7 +232,7 @@ export default function WishForm({ onComplete }) {
 
                     <button
                         type="submit"
-                        className="btn btn-primary form-submit-btn"
+                        className="submit-btn"
                         disabled={isUploading}
                     >
                         {isUploading ? 'Đang chuẩn bị ảnh...' : '🎨 Tạo thiệp ngay!'}
