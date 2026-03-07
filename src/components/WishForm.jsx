@@ -27,35 +27,26 @@ export default function WishForm({ onComplete }) {
             const formData = new FormData()
             formData.append('image', blobData, 'photo.jpg')
 
-            // API keys dự phòng
-            const keys = [
-                import.meta.env.VITE_IMGBB_API_KEY || '6440dbacb292cd4de8bd4b31da0e2e50',
-                'c387cf3cff7ce3e6df41cceab8b975d2', // Fallback 1
-                'ced2b3b7548bce2a407db3be6ab30a51'  // Fallback 2
-            ]
+            try {
+                // Gọi tới endpoint API nội bộ do server.js quản lý
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                const data = await res.json()
 
-            let success = false
-            for (const key of keys) {
-                if (success) break
-                try {
-                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${key}`, {
-                        method: 'POST',
-                        body: formData
-                    })
-                    const data = await res.json()
-                    if (data.success) {
-                        setPhoto(data.data.url)
-                        success = true
-                    }
-                } catch (err) {
-                    console.warn('ImgBB Upload Error with key', key, err)
+                if (data.success) {
+                    setPhoto(data.url)
+                } else {
+                    console.error('R2 Upload Error Response:', data)
+                    setErrors(p => ({ ...p, photo: 'Hệ thống chưa cấu hình đủ R2 Storage, liên hệ Admin!' }))
                 }
+            } catch (err) {
+                console.error('R2 Upload Network Error:', err)
+                setErrors(p => ({ ...p, photo: 'Không thể kết nối đến máy chủ lưu trữ, vui lòng thử lại sau!' }))
+            } finally {
+                setIsUploading(false)
             }
-
-            if (!success) {
-                setErrors(p => ({ ...p, photo: 'Không thể kết nối đến máy chủ ảnh, vui lòng thử lại sau!' }))
-            }
-            setIsUploading(false)
         }
 
         const MAX = 1.5 * 1024 * 1024 // 1.5MB
