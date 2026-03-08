@@ -6,7 +6,7 @@ import { insertEvent, getStats, getRecent, insertCard, getCard } from './db.js'
 import dotenv from 'dotenv'
 
 // Cloudflare R2 Imports
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import multer from 'multer'
 import crypto from 'crypto'
 
@@ -97,7 +97,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
  * POST /api/cards
  * Nhận dữ liệu thiệp và tạo mã ID
  */
-app.post('/api/cards', (req, res) => {
+app.post('/api/cards', async (req, res) => {
     try {
         const { sender, recipient, message, photo } = req.body
         if (!sender || !recipient || !message) {
@@ -110,7 +110,25 @@ app.post('/api/cards', (req, res) => {
             id = crypto.randomBytes(3).toString('hex')
         }
 
+        const cardData = { id, sender, recipient, message, photo: photo || null, created_at: new Date().toISOString() }
+
+        // Mặc dù free tier của Render sẽ xoá mất SQLite cache sau 15p nhàn rỗi, 
+        // File JSON này trên Cloudflare R2 sẽ sinh tồn mãi mãi
+        if (R2_ACCOUNT_ID && R2_ACCESS_KEY && R2_SECRET_KEY) {
+            const command = new PutObjectCommand({
+                Bucket: R2_BUCKET,
+                Key: `data/${id}.json`,
+                Body: JSON.stringify(cardData),
+                ContentType: 'application/json'
+            })
+            await s3Client.send(command).catch(err => {
+                console.error('[R2 Put Error]', err)
+            })
+        }
+
+        // Vẫn lưu vào SQLite để lấy nhanh nếu server chưa bị restart
         insertCard.run(id, sender, recipient, message, photo || null)
+
         res.json({ success: true, id })
     } catch (err) {
         console.error('[/api/cards]', err)
@@ -122,9 +140,36 @@ app.post('/api/cards', (req, res) => {
  * GET /api/cards/:id
  * Truy xuất thông tin thiệp
  */
-app.get('/api/cards/:id', (req, res) => {
+app.get('/api/cards/:id', async (req, res) => {
     try {
-        const card = getCard.get(req.params.id)
+        const id = req.params.id
+        let card = getCard.get(id)
+
+        // Nếu file DB bị Render reset, thử kéo từ R2 về
+        if (!card && R2_ACCOUNT_ID && R2_ACCESS_KEY && R2_SECRET_KEY) {
+            try {
+                const command = new GetObjectCommand({
+                    Bucket: R2_BUCKET,
+                    Key: `data/${id}.json`
+                })
+                const response = await s3Client.send(command)
+                const bodyContents = await response.Body.transformToString()
+                card = JSON.parse(bodyContents)
+
+                // Lưu lại vào SQLite cache để dùng cho những lần sau
+                if (card) {
+                    try {
+                        insertCard.run(card.id, card.sender, card.recipient, card.message, card.photo || null)
+                    } catch (e) {
+                        console.error('Failed to restore cache to SQLite:', e)
+                    }
+                }
+            } catch (r2Err) {
+                // Ignore error if key not found (404)
+                console.error(`[R2 Fetch Error for ${id}]:`, r2Err.name)
+            }
+        }
+
         if (!card) {
             return res.status(404).json({ success: false, error: 'Card not found' })
         }
